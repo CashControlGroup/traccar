@@ -17,12 +17,6 @@
 package org.traccar.notificators;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.inject.Inject;
-import jakarta.inject.Provider;
-import jakarta.inject.Singleton;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.client.Entity;
 import org.glassfish.jersey.client.ClientProperties;
 import org.traccar.config.Config;
 import org.traccar.config.Keys;
@@ -33,6 +27,12 @@ import org.traccar.model.User;
 import org.traccar.notification.NotificationFormatter;
 import org.traccar.notification.NotificationMessage;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
@@ -70,10 +70,16 @@ public class NotificatorTelegram extends Notificator {
     public NotificatorTelegram(Config config, NotificationFormatter notificationFormatter,
             Client client, Provider<ClientBuilder> clientBuilderProvider) {
         super(notificationFormatter);
+
+        String baseUrl = config.getString(Keys.NOTIFICATOR_TELEGRAM_BASE_URL);
+        if (baseUrl == null) {
+            baseUrl = "https://api.telegram.org/bot";
+        }
+
         urlSendText = String.format(
-                "https://api.telegram.org/bot%s/sendMessage", config.getString(Keys.NOTIFICATOR_TELEGRAM_KEY));
+                "%s%s/sendMessage", baseUrl, config.getString(Keys.NOTIFICATOR_TELEGRAM_KEY));
         urlSendLocation = String.format(
-                "https://api.telegram.org/bot%s/sendLocation", config.getString(Keys.NOTIFICATOR_TELEGRAM_KEY));
+                "%s%s/sendLocation", baseUrl, config.getString(Keys.NOTIFICATOR_TELEGRAM_KEY));
         chatId = config.getString(Keys.NOTIFICATOR_TELEGRAM_CHAT_ID);
         sendLocation = config.getBoolean(Keys.NOTIFICATOR_TELEGRAM_SEND_LOCATION);
 
