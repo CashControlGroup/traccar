@@ -40,8 +40,12 @@ and runbooks live in `CashControlGroup/traccar-infra`, which has its own CLAUDE.
    and health-checks `/api/server`.
 3. Front-end: merging a PR into `traccar-web` `custom/main` runs that repo's `ship-to-server`
    workflow, which moves the `traccar-web` submodule here to the merged commit and pushes to
-   `custom/main` — step 1 follows. To ship by hand, do the same locally: in `traccar-web`
-   `git checkout <sha>`, then commit the pointer here and push.
+   `custom/main` — step 1 follows. To ship by hand, do the same here:
+   `git update-index --cacheinfo 160000,<web sha>,traccar-web`, then commit and push.
+
+`.gitmodules` (upstream's) sets `ignore = all` on the submodule, so `git status`, `git diff` and
+`git commit -a` never show a pointer change. Check it with `git rev-parse HEAD:traccar-web` (or
+`git ls-tree HEAD traccar-web`) and stage it with `update-index` as above.
 
 Repository-dispatch, workflow-dispatch and schedule triggers only run on the **default branch**
 (`master` here), so workflows on `custom/main` respond to push and pull_request only. That is
@@ -53,7 +57,8 @@ why the weekly `upstream-sync` schedule never fires: take releases by hand as be
    at (`git ls-tree <tag> traccar-web`), then merge that commit into `custom/main` (PR, merge
    commit). Check every file in `branding/web/` still exists in `traccar-web/public/`.
 2. Here: branch `sync/upstream-YYYYMMDD` from `custom/main`, `git merge <tag>`. If the only
-   conflict is the `traccar-web` pointer, set it to the head of traccar-web `custom/main`.
+   conflict is the `traccar-web` pointer, set it to the head of traccar-web `custom/main`
+   (`update-index`, as above), then confirm with `git ls-tree HEAD traccar-web`.
 3. `git diff <tag> HEAD --stat` must list only our additive files. Open a PR into `custom/main`;
    `custom-ci` builds the full image (without pushing) on it.
 4. Merge with a **merge commit, never squash** — squashing flattens upstream history and breaks
