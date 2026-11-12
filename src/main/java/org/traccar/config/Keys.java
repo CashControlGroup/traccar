@@ -33,7 +33,7 @@ public final class Keys {
      * Port number for the protocol. Most protocols use TCP on the transport layer. Some protocols use UDP. Some
      * support both TCP and UDP.
      */
-    public static final ConfigSuffix<Integer> PROTOCOL_PORT = new PortConfigSuffix(
+    public static final ConfigSuffix<Integer> PROTOCOL_PORT = new ProtocolConfig.PortSuffix(
             ".port",
             List.of(KeyType.CONFIG));
 
@@ -789,10 +789,11 @@ public final class Keys {
      * List of OpenID Connect clients for the built-in provider.
      * Value should be a comma-separated list of 'clientId:clientSecret:redirectUri' entries.
      * Multiple redirect URIs can be specified using '|' as a separator.
+     * A user attribute overrides the global list and only allows authorization for that user.
      */
     public static final ConfigKey<String> OPENID_CLIENTS = new StringConfigKey(
             "openid.clients",
-            List.of(KeyType.CONFIG));
+            List.of(KeyType.CONFIG, KeyType.USER));
 
     /**
      * Force OpenID Connect authentication. When enabled, the Traccar login page will be skipped
@@ -879,8 +880,8 @@ public final class Keys {
      * This option will only work if your OpenID provider supports the groups scope.
      */
     public static final ConfigKey<String> OPENID_ALLOW_GROUP = new StringConfigKey(
-        "openid.allowGroup",
-        List.of(KeyType.CONFIG));
+            "openid.allowGroup",
+            List.of(KeyType.CONFIG));
 
     /**
      * OpenID Connect group to grant admin access.
@@ -980,6 +981,14 @@ public final class Keys {
     public static final ConfigKey<Boolean> WEB_CONSOLE = new BooleanConfigKey(
             "web.console",
             List.of(KeyType.CONFIG));
+
+    /**
+     * Include stack traces in API error responses. Disable to return only error messages.
+     */
+    public static final ConfigKey<Boolean> WEB_SHOW_STACK_TRACES = new BooleanConfigKey(
+            "web.showStackTraces",
+            List.of(KeyType.CONFIG),
+            true);
 
     /**
      * A token to log in as a virtual admin account. Can be used to restore access in case of issues with regular
@@ -1101,6 +1110,7 @@ public final class Keys {
 
     /**
      * Additional HTTP header that can be used for authorization.
+     * Global headers are only used when forwarding to the globally configured URL.
      */
     public static final ConfigKey<String> FORWARD_HEADER = new StringConfigKey(
             "forward.header",
@@ -1392,6 +1402,14 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
+     * Enable Google Find Hub command sender.
+     */
+    public static final ConfigKey<Boolean> COMMAND_FIND_HUB_ENABLE = new BooleanConfigKey(
+            "command.findHub.enable",
+            List.of(KeyType.CONFIG),
+            false);
+
+    /**
      * Google Find Hub service URL.
      */
     public static final ConfigKey<String> COMMAND_FIND_HUB_URL = new StringConfigKey(
@@ -1487,6 +1505,13 @@ public final class Keys {
      */
     public static final ConfigKey<String> NOTIFICATOR_TELEGRAM_PROXY_URL = new StringConfigKey(
             "notificator.telegram.proxy.url",
+            List.of(KeyType.CONFIG));
+
+    /**
+     * Telegram notification base URL.
+     */
+    public static final ConfigKey<String> NOTIFICATOR_TELEGRAM_BASE_URL = new StringConfigKey(
+            "notificator.telegram.base.url",
             List.of(KeyType.CONFIG));
 
     /**
@@ -1670,6 +1695,13 @@ public final class Keys {
             true);
 
     /**
+     * Filter positions outside the device calendar. Disable to retain private positions.
+     */
+    public static final ConfigKey<Boolean> FILTER_CALENDAR = new BooleanConfigKey(
+            "filter.calendar",
+            List.of(KeyType.CONFIG, KeyType.DEVICE));
+
+    /**
      * Filter invalid (valid field is set to false) positions.
      */
     public static final ConfigKey<Boolean> FILTER_INVALID = new BooleanConfigKey(
@@ -1770,7 +1802,16 @@ public final class Keys {
             List.of(KeyType.CONFIG, KeyType.DEVICE));
 
     /**
-     * Throttling interval if the limit is exceeded. The value is in seconds.
+     * Throttle positions if the daily stored position limit is reached across all devices on this server.
+     * Uses filter.dailyLimitInterval for the throttling interval for each device.
+     * A zero or negative value disables the limit. The count resets daily and on server restart.
+     */
+    public static final ConfigKey<Integer> FILTER_GLOBAL_DAILY_LIMIT = new IntegerConfigKey(
+            "filter.globalDailyLimit",
+            List.of(KeyType.CONFIG));
+
+    /**
+     * Throttling interval if the device or global daily limit is exceeded. The value is in seconds.
      */
     public static final ConfigKey<Integer> FILTER_DAILY_LIMIT_INTERVAL = new IntegerConfigKey(
             "filter.dailyLimitInterval",
@@ -1809,6 +1850,14 @@ public final class Keys {
     public static final ConfigKey<String> PROTOCOLS_ENABLE = new StringConfigKey(
             "protocols.enable",
             List.of(KeyType.CONFIG));
+
+    /**
+     * Default transport when initializing protocol settings in the database: TCP, UDP, ALL, or DISABLED.
+     */
+    public static final ConfigKey<String> PROTOCOLS_DEFAULT_TRANSPORT = new StringConfigKey(
+            "protocols.defaultTransport",
+            List.of(KeyType.CONFIG),
+            "ALL");
 
     /**
      * List of protocols for overriding time. If not specified, override is applied globally. The list consists of
@@ -1935,8 +1984,7 @@ public final class Keys {
      */
     public static final ConfigKey<String> GEOCODER_KEY = new StringConfigKey(
             "geocoder.key",
-            List.of(KeyType.CONFIG),
-            "pk.689d849289c8c63708068b2ff1f63b2d");
+            List.of(KeyType.CONFIG));
 
     /**
      * Language parameter for providers that support localization (e.g. Google and Nominatim).
@@ -2176,6 +2224,7 @@ public final class Keys {
 
     /**
      * Public URL for the web app. Used for notifications, report links, and OpenID Connect.
+     * Its path also sets the HTML base path when hosted behind a reverse proxy.
      * If not provided, Traccar will attempt to get a URL from the server IP address, but it might be a local address.
      */
     public static final ConfigKey<String> WEB_URL = new StringConfigKey(
