@@ -6,7 +6,7 @@
 # kept in traccar-infra for reference / local builds via `--build-context`.
 #
 # Stage 1: build the web bundle (React + Vite)
-FROM node:20-alpine AS web
+FROM node:22-alpine AS web
 WORKDIR /web
 # traccar-web is the submodule directory inside the traccar fork checkout.
 # .npmrc carries the project's npm policy (legacy-peer-deps) and must be present

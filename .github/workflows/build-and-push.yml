@@ -1,7 +1,7 @@
 name: build-and-push
 
 # Builds the custom Traccar image from YOUR fork and pushes it to ACR.
-# NOTE: This workflow is intended to live in your `your-org/traccar` FORK
+# NOTE: This workflow is intended to live in your `CashControlGroup/traccar` FORK
 # (which contains the traccar-web submodule), since the build needs the source.
 # The Dockerfile + branding/ can be vendored in via this infra repo or committed
 # to the fork. Adjust `context`/`file` paths to match where you keep them.
@@ -69,6 +69,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.DEPLOY_DISPATCH_TOKEN }}
-          repository: MatellSoftware/traccar-infra
+          repository: CashControlGroup/traccar-infra
           event-type: deploy-image
           client-payload: '{"tag": "${{ steps.meta.outputs.tag }}"}'
